@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты</title>
+    <!-- Подключаем Bootstrap 5 -->
+    <link href="https://jsdelivr.net" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- Верхнее меню (Навигация) -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">Каталог товаров</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/">Главная</a>
+                <a class="nav-link active" href="/contacts/">Контакты</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основной контент страницы -->
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm p-4 bg-white">
+                    <h2 class="mb-4 text-center text-dark">Обратная связь</h2>
+
+                    <!-- Блок для вывода сообщения об успешной отправке -->
+                    {% if success %}
+                        <div class="alert alert-success text-center" role="alert">
+                            Спасибо, {{ user_name }}! Ваше сообщение отправлено в консоль.
+                        </div>
+                    {% endif %}
+
+                    <!-- Форма отправки данных -->
+                    <form method="POST" action="/contacts/">
+                        {% csrf_token %} <!-- Безопасность Django -->
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Ваше имя</label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="Иван">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Сообщение</label>
+                            <textarea class="form-control" id="message" name="message" rows="4" required placeholder="Введите ваше сообщение..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Отправить</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
