@@ -1,13 +1,15 @@
 from django.contrib import admin
 from django.urls import path
-from django.views.generic import TemplateView
+from catalog import views
+
 
 urlpatterns = [
+    # 1. Админка
     path('admin/', admin.site.urls),
 
-    # 2. Главная страница (подключает созданный файл home.html)
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    # 2. Главная страница (теперь через views.home_view)
+    path('', views.home_view, name='home'),
 
-    # 3. Страница контактов (подключает созданный файл contacts.html)
-    path('contacts/', TemplateView.as_view(template_name='contacts.html'), name='contacts'),
+    # 3. Страница контактов (теперь через views.contacts_view)
+    path('contacts/', views.contacts_view, name='contacts'),
 ]
