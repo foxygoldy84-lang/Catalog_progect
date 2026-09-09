@@ -130,3 +130,8 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+# Настройки для загрузки медиафайлов (картинок товаров)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
