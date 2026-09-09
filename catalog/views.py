@@ -1,31 +1,29 @@
 from django.shortcuts import render
-from catalog.models import Product, ContactInfo
 
 
 def home_view(request):
-    """Контроллер главной страницы."""
-    # Выборка последних 5 созданных продуктов (сортируем по дате создания в обратном порядке)
-    latest_products = Product.objects.all().order_by("-created_at")[:5]
-
-    print("\n=== ПОСЛЕДНИЕ 5 ПРОДУКТОВ В КОНСОЛИ ===")
-    for product in latest_products:
-        print(f"ID: {product.id} | {product.name} | Цена: {product.price}")
-    print("=======================================\n")
-
-    return render(request, "home.html")
+    """Контроллер для отображения домашней страницы"""
+    return render(request, "catalog/home.html")
 
 
 def contacts_view(request):
-    """Контроллер страницы контактов."""
+    """Контроллер для страницы контактов с обработкой формы"""
+    context = {}
+
+    # Если пользователь нажал кнопку "Отправить" (метод POST)
     if request.method == "POST":
+        # Забираем данные, которые ввел пользователь в поля name и message
         name = request.POST.get("name")
-        email = request.POST.get("email")
         message = request.POST.get("message")
-        print(
-            f"\n=== ДАННЫЕ ФОРМЫ ===\nИмя: {name}\nEmail: {email}\nСообщение: {message}\n====================\n"
-        )
 
-    # Получаем первую запись с контактами из админки (или None, если база пуста)
-    contact_data = ContactInfo.objects.first()
+        # Печатаем их прямо в консоль терминала PyCharm
+        print("\n--- ПОЛУЧЕНО НОВОЕ СООБЩЕНИЕ ---")
+        print(f"Имя пользователя: {name}")
+        print(f"Текст сообщения: {message}")
+        print("---------------------------------\n")
 
-    return render(request, "contacts.html", {"contact_data": contact_data})
+        # Передаем информацию об успехе обратно на страницу
+        context["success"] = True
+        context["user_name"] = name
+
+    return render(request, "catalog/contacts.html", context)
