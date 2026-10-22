@@ -1,10 +1,23 @@
+import os
 from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    load_dotenv(os.path.join(BASE_DIR, ".env"))
+except ImportError:
+    pass
+
+os.environ["PGCLIENTENCODING"] = "utf-8"
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-h7c+bwxp)tbaqr6m9enhj#3p8gmh50mxmkykk_@s0!@nggndp_"
 
 DEBUG = True
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-my-super-secret-key-123")
 
 ALLOWED_HOSTS = []
 
@@ -34,7 +47,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "catalog" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -51,11 +64,21 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME", "catalog_db"),
+        "USER": os.environ.get("DB_USER", "postgres"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "postgres123"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
+        "OPTIONS": {
+            "client_encoding": "UTF8",
+        },
     }
 }
 
+
+# Password validation
+# https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -73,16 +96,27 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ru-ru"
 
 TIME_ZONE = "UTC"
 
 USE_I18N = True
 
+# Разделять тысячи в ценах (например, 29 999,99 руб.)
+USE_THOUSAND_SEPARATOR = True
+
 USE_TZ = True
 
 
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/6.1/howto/static-files/
+
 STATIC_URL = "static/"
+
+# Указываем Django, где искать папку static
+STATICFILES_DIRS = [
+    BASE_DIR / "catalog" / "static",
+]
 
 
 MAILERS = {
@@ -90,3 +124,8 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+
+# Настройки для загрузки медиафайлов (картинок товаров)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
