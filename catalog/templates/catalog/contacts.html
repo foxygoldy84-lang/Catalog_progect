@@ -16,7 +16,7 @@
                     {% endif %}
 
                     <!-- Форма отправки данных -->
-                    <form method="POST" action="/contacts/">
+                    <form method="POST" action="{% url 'catalog:contacts' %}">
                         {% csrf_token %} <!-- Безопасность Django -->
 
                         <div class="mb-3">

@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "catalog",
+    "blog",
 ]
 
 MIDDLEWARE = [
@@ -119,11 +120,24 @@ STATICFILES_DIRS = [
 ]
 
 
-MAILERS = {
-    "default": {
-        "BACKEND": "django.core.mail.backends.console.EmailBackend",
-    },
-}
+# Настройки отправки почты.
+# По умолчанию письма выводятся в консоль, чтобы можно было проверить
+# дополнительное задание без реального почтового сервера.
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@catalog.local")
+
+# Адрес, на который приходит поздравление о 100 просмотрах статьи
+BLOG_NOTIFICATION_EMAIL = os.environ.get(
+    "BLOG_NOTIFICATION_EMAIL", EMAIL_HOST_USER or "admin@catalog.local"
+)
 
 
 # Настройки для загрузки медиафайлов (картинок товаров)

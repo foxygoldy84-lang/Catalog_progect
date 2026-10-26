@@ -5,9 +5,16 @@ from .apps import CatalogConfig
 
 app_name = CatalogConfig.name
 urlpatterns = [
-    path("", views.home_view, name="home"),  # Главная страница (пустой путь)
-    path("contacts/", views.contacts_view, name="contacts"),  # Страница контактов
-    path("create/", views.create_product_view, name="create_product"),
+    # Главная страница (пустой путь)
+    path("", views.HomeView.as_view(), name="home"),
+    # Страница контактов
+    path("contacts/", views.ContactsView.as_view(), name="contacts"),
+    # Добавление нового товара
+    path("create/", views.ProductCreateView.as_view(), name="create_product"),
     # Подробная информация о конкретном товаре
-    path("products/<int:pk>/", views.product_detail_view, name="product_detail"),
+    path(
+        "products/<int:pk>/",
+        views.ProductDetailView.as_view(),
+        name="product_detail",
+    ),
 ]
