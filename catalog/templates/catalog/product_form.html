@@ -1,11 +1,13 @@
 {% extends 'catalog/base.html' %}
 
-{% block title %}Добавить товар{% endblock %}
+{% block title %}{% if object %}Редактировать товар{% else %}Добавить товар{% endif %}{% endblock %}
 
 {% block content %}
 <div class="container" style="max-width: 640px;">
 
-    <h2 class="mb-4">Добавить новый товар</h2>
+    <h2 class="mb-4">
+        {% if object %}Редактировать товар{% else %}Добавить новый товар{% endif %}
+    </h2>
 
     <!-- Подсказка, если в базе нет категорий (без них товар сохранить нельзя) -->
     {% if not categories %}
@@ -41,7 +43,16 @@
                 </div>
             {% endfor %}
 
-            <button type="submit" class="btn btn-primary w-100">Сохранить товар</button>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    {% if object %}Сохранить изменения{% else %}Сохранить товар{% endif %}
+                </button>
+                {% if object %}
+                    <a href="{% url 'catalog:product_detail' object.pk %}" class="btn btn-secondary">Отмена</a>
+                {% else %}
+                    <a href="{% url 'catalog:home' %}" class="btn btn-secondary">Отмена</a>
+                {% endif %}
+            </div>
         </div>
     </form>
 </div>

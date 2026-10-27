@@ -17,4 +17,16 @@ urlpatterns = [
         views.ProductDetailView.as_view(),
         name="product_detail",
     ),
+    # Редактирование товара
+    path(
+        "products/<int:pk>/edit/",
+        views.ProductUpdateView.as_view(),
+        name="product_update",
+    ),
+    # Удаление товара
+    path(
+        "products/<int:pk>/delete/",
+        views.ProductDeleteView.as_view(),
+        name="product_delete",
+    ),
 ]

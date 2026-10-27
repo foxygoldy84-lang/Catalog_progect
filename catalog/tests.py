@@ -1,7 +1,12 @@
+from io import BytesIO
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.formats import localize
+from PIL import Image
 
+from catalog.forms import MAX_IMAGE_SIZE, ProductForm
 from catalog.models import Category, Product
 
 
@@ -173,3 +178,195 @@ class CreateProductTests(TestCase):
         response = self.client.get(reverse("catalog:home"))
 
         self.assertContains(response, "успешно добавлен в каталог")
+
+
+def make_image_file(
+    name="test.png",
+    image_format="PNG",
+    content_type="image/png",
+    extra_bytes=0,
+):
+    """Создаёт валидный файл изображения для тестов формы."""
+    buffer = BytesIO()
+    Image.new("RGB", (10, 10), "white").save(buffer, format=image_format)
+    content = buffer.getvalue() + b"\0" * extra_bytes
+    return SimpleUploadedFile(name, content, content_type=content_type)
+
+
+class ProductFormValidationTests(TestCase):
+    """Проверки валидации и стилизации формы продукта."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.category = Category.objects.create(name="Электроника")
+
+    def get_form_data(self, **overrides):
+        data = {
+            "name": "Смартфон",
+            "description": "Хороший телефон",
+            "category": self.category.pk,
+            "price": "10000.00",
+        }
+        data.update(overrides)
+        return data
+
+    def test_valid_form_is_accepted(self):
+        """Корректные данные проходят валидацию."""
+        form = ProductForm(data=self.get_form_data())
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_forbidden_word_in_name_is_rejected(self):
+        """Запрещённое слово в названии блокирует форму."""
+        form = ProductForm(data=self.get_form_data(name="Лучшее Казино"))
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("названии", form.errors["name"][0])
+        self.assertIn("казино", form.errors["name"][0])
+
+    def test_forbidden_word_in_description_is_rejected(self):
+        """Запрещённые слова в описании блокируют форму."""
+        form = ProductForm(data=self.get_form_data(description="Бесплатно и ДЕШЕВО"))
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("описании", form.errors["description"][0])
+
+    def test_forbidden_words_are_checked_case_insensitively(self):
+        """Запрещённые слова находятся в любом регистре."""
+        form = ProductForm(data=self.get_form_data(name="КРИПТОВАЛЮТА"))
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("криптовалюта", form.errors["name"][0])
+
+    def test_negative_price_is_rejected(self):
+        """Отрицательная цена не проходит валидацию."""
+        form = ProductForm(data=self.get_form_data(price="-1.00"))
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("не может быть отрицательной", form.errors["price"][0])
+
+    def test_zero_price_is_accepted(self):
+        """Нулевая цена допустима."""
+        form = ProductForm(data=self.get_form_data(price="0.00"))
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_png_and_jpeg_images_are_accepted(self):
+        """PNG и JPEG проходят проверку формата."""
+        for image_format, content_type, name in (
+            ("PNG", "image/png", "test.png"),
+            ("JPEG", "image/jpeg", "test.jpg"),
+        ):
+            with self.subTest(image_format=image_format):
+                image = make_image_file(name, image_format, content_type)
+                form = ProductForm(data=self.get_form_data(), files={"image": image})
+
+                self.assertTrue(form.is_valid(), form.errors)
+
+    def test_gif_image_is_rejected(self):
+        """GIF не проходит проверку формата."""
+        image = make_image_file("test.gif", "GIF", "image/gif")
+        form = ProductForm(data=self.get_form_data(), files={"image": image})
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("JPEG или PNG", form.errors["image"][0])
+
+    def test_image_larger_than_5_mb_is_rejected(self):
+        """Изображение больше 5 МБ не проходит валидацию."""
+        image = make_image_file(extra_bytes=MAX_IMAGE_SIZE)
+        form = ProductForm(data=self.get_form_data(), files={"image": image})
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("5 МБ", form.errors["image"][0])
+
+    def test_form_fields_are_styled_in_init(self):
+        """Стили полей задаются в методе __init__."""
+        form = ProductForm()
+
+        self.assertEqual(form.fields["name"].widget.attrs["class"], "form-control")
+        self.assertEqual(
+            form.fields["description"].widget.attrs["class"], "form-control"
+        )
+        self.assertEqual(form.fields["price"].widget.attrs["class"], "form-control")
+        self.assertEqual(form.fields["category"].widget.attrs["class"], "form-select")
+        self.assertEqual(form.fields["image"].widget.attrs["class"], "form-control")
+        self.assertEqual(
+            form.fields["image"].widget.attrs["accept"], "image/jpeg,image/png"
+        )
+
+
+class ProductCrudTests(TestCase):
+    """Проверки редактирования и удаления продуктов."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.category = Category.objects.create(name="Электроника")
+        cls.product = Product.objects.create(
+            name="Смартфон",
+            description="Хороший телефон",
+            category=cls.category,
+            price=10000,
+        )
+
+    def test_update_product(self):
+        """Товар можно отредактировать через форму."""
+        response = self.client.post(
+            reverse("catalog:product_update", args=[self.product.pk]),
+            {
+                "name": "Обновлённый смартфон",
+                "description": "Обновлённое описание",
+                "category": self.category.pk,
+                "price": "12000.00",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("catalog:product_detail", args=[self.product.pk]),
+        )
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.name, "Обновлённый смартфон")
+        self.assertEqual(str(self.product.price), "12000.00")
+
+    def test_update_with_forbidden_word_shows_error(self):
+        """При запрещённом слове товар не обновляется."""
+        response = self.client.post(
+            reverse("catalog:product_update", args=[self.product.pk]),
+            {
+                "name": "Крипта",
+                "description": "Описание",
+                "category": self.category.pk,
+                "price": "12000.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("названии", response.context["form"].errors["name"][0])
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.name, "Смартфон")
+
+    def test_delete_product(self):
+        """Товар можно удалить."""
+        response = self.client.post(
+            reverse("catalog:product_delete", args=[self.product.pk])
+        )
+
+        self.assertRedirects(response, reverse("catalog:home"))
+        self.assertFalse(Product.objects.filter(pk=self.product.pk).exists())
+
+    def test_create_with_forbidden_word_shows_error(self):
+        """Форма создания показывает ошибку для запрещённого слова."""
+        count_before = Product.objects.count()
+        response = self.client.post(
+            reverse("catalog:create_product"),
+            {
+                "name": "Казино",
+                "description": "Описание",
+                "category": self.category.pk,
+                "price": "100.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("названии", response.context["form"].errors["name"][0])
+        self.assertEqual(Product.objects.count(), count_before)

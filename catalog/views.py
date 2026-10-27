@@ -1,6 +1,13 @@
 from django.contrib import messages
-from django.urls import reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView, TemplateView
+from django.urls import reverse, reverse_lazy
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    TemplateView,
+    UpdateView,
+)
 
 from catalog.forms import ProductForm
 from catalog.models import Category, Product
@@ -62,7 +69,16 @@ class ContactsView(TemplateView):
         return self.render_to_response(context)
 
 
-class ProductCreateView(CreateView):
+class ProductFormContextMixin:
+    """Добавляет список категорий в контекст формы продукта."""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["categories"] = Category.objects.all()
+        return context
+
+
+class ProductCreateView(ProductFormContextMixin, CreateView):
     """Контроллер страницы добавления нового товара в каталог."""
 
     model = Product
@@ -70,16 +86,46 @@ class ProductCreateView(CreateView):
     template_name = "catalog/product_form.html"
     success_url = reverse_lazy("catalog:home")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Категории нужны для предупреждения, если их ещё нет в базе
-        context["categories"] = Category.objects.all()
-        return context
-
     def form_valid(self, form):
         response = super().form_valid(form)
         messages.success(
             self.request,
             f"Товар «{self.object.name}» успешно добавлен в каталог.",
+        )
+        return response
+
+
+class ProductUpdateView(ProductFormContextMixin, UpdateView):
+    """Контроллер страницы редактирования товара."""
+
+    model = Product
+    form_class = ProductForm
+    template_name = "catalog/product_form.html"
+
+    def get_success_url(self):
+        return reverse("catalog:product_detail", kwargs={"pk": self.object.pk})
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(
+            self.request,
+            f"Товар «{self.object.name}» успешно обновлён.",
+        )
+        return response
+
+
+class ProductDeleteView(DeleteView):
+    """Контроллер страницы удаления товара."""
+
+    model = Product
+    template_name = "catalog/product_confirm_delete.html"
+    success_url = reverse_lazy("catalog:home")
+
+    def form_valid(self, form):
+        product_name = self.get_object().name
+        response = super().form_valid(form)
+        messages.success(
+            self.request,
+            f"Товар «{product_name}» успешно удалён.",
         )
         return response
