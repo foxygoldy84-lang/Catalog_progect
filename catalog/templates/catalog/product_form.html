@@ -1,0 +1,59 @@
+{% extends 'catalog/base.html' %}
+
+{% block title %}{% if object %}Редактировать товар{% else %}Добавить товар{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 640px;">
+
+    <h2 class="mb-4">
+        {% if object %}Редактировать товар{% else %}Добавить новый товар{% endif %}
+    </h2>
+
+    <!-- Подсказка, если в базе нет категорий (без них товар сохранить нельзя) -->
+    {% if not categories %}
+        <div class="alert alert-warning" role="alert">
+            В базе данных пока нет ни одной категории, поэтому товар сохранить не получится.
+            Создайте категории в
+            <a href="/admin/catalog/category/" class="alert-link">панели администратора</a>.
+        </div>
+    {% endif %}
+
+    <!-- Важно: enctype="multipart/form-data" нужен для загрузки картинок товаров -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %} <!-- Безопасность Django -->
+
+        <!-- Общие ошибки формы (например, не выбрана категория) -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card shadow-sm bg-white p-4">
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    {% if object %}Сохранить изменения{% else %}Сохранить товар{% endif %}
+                </button>
+                {% if object %}
+                    <a href="{% url 'catalog:product_detail' object.pk %}" class="btn btn-secondary">Отмена</a>
+                {% else %}
+                    <a href="{% url 'catalog:home' %}" class="btn btn-secondary">Отмена</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

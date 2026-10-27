@@ -1,0 +1,7 @@
+<!-- Подшаблон с главным меню, подключается в базовый шаблон и на другие страницы -->
+<nav style="background: #444; padding: 10px; text-align: center;">
+    <a href="{% url 'catalog:home' %}" style="color: white; margin: 0 15px; text-decoration: none;">Главная</a>
+    <a href="{% url 'catalog:contacts' %}" style="color: white; margin: 0 15px; text-decoration: none;">Контакты</a>
+    <a href="{% url 'blog:blogpost_list' %}" style="color: white; margin: 0 15px; text-decoration: none;">Блог</a>
+    <a href="{% url 'catalog:create_product' %}" style="color: lightgreen; margin: 0 15px; text-decoration: none; font-weight: bold;">+ Добавить товар</a>
+</nav>

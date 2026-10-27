@@ -1,35 +1,87 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная страница</title>
-    <!-- Подключаем Bootstrap 5 -->
-    <link href="https://jsdelivr.net" rel="stylesheet">
-</head>
-<body class="bg-light">
-
-    <!-- Верхнее меню (Навигация) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="/">Каталог товаров</a>
-            <div class="navbar-nav">
-                <a class="nav-link active" href="/">Главная</a>
-                <a class="nav-link" href="/contacts/">Контакты</a>
-            </div>
-        </div>
-    </nav>
-
+{% extends "catalog/base.html" %}
+{% block title %}Главная{% endblock %}
+{% block content %}
     <!-- Основной блок на странице -->
-    <main class="container">
+    <div class="container">
         <div class="p-5 mb-4 bg-white rounded-3 shadow-sm text-center">
             <h1 class="display-5 fw-bold text-dark">Добро пожаловать в Каталог!</h1>
             <p class="lead text-muted">Это домашняя страница нашего нового веб-приложения на Django.</p>
             <hr class="my-4">
             <p>Вы можете перейти в раздел контактов, чтобы отправить нам сообщение.</p>
-            <a class="btn btn-primary btn-lg" href="/contacts/" role="button">Перейти к контактам</a>
+            <a class="btn btn-primary btn-lg" href="{% url 'catalog:contacts' %}" role="button">Перейти к контактам</a>
         </div>
-    </main>
 
-</body>
-</html>
+        <!-- Список товаров: одинаковые карточки для каждого товара -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">Каталог товаров</h2>
+            {% if page_obj.paginator.count %}
+                <span class="text-muted">
+                    Показано {{ page_obj.start_index }}&ndash;{{ page_obj.end_index }}
+                    из {{ page_obj.paginator.count }} товаров
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for product in page_obj %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ product.name }}</h5>
+
+                            <!-- Описание обрезается до первых 100 символов, чтобы карточки выглядели одинаково -->
+                            <p class="card-text">
+                                {{ product.description|default:"Описание отсутствует"|truncatechars:100 }}
+                            </p>
+
+                            <p class="text-muted small mb-3">{{ product.category.name }}</p>
+
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-danger fs-5">{{ product.price }} руб.</span>
+                                <a href="{% url 'catalog:product_detail' product.pk %}" class="btn btn-outline-primary btn-sm">
+                                    Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col">
+                    <p class="text-center text-muted">На данный момент товаров нет.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Навигация между страницами списка товаров -->
+        {% if page_obj.paginator.num_pages > 1 %}
+            <nav aria-label="Навигация по страницам каталога" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                        {% if page_obj.has_previous %}
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Назад</a>
+                        {% else %}
+                            <span class="page-link">&laquo; Назад</span>
+                        {% endif %}
+                    </li>
+
+                    {% for number in page_obj.paginator.page_range %}
+                        <li class="page-item {% if number == page_obj.number %}active{% endif %}">
+                            <a class="page-link" href="?page={{ number }}">{{ number }}</a>
+                        </li>
+                    {% endfor %}
+
+                    <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                        {% if page_obj.has_next %}
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд &raquo;</a>
+                        {% else %}
+                            <span class="page-link">Вперёд &raquo;</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+{% endblock %}

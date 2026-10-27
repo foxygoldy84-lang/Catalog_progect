@@ -1,0 +1,64 @@
+{% extends 'catalog/base.html' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Навигационная цепочка -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'catalog:home' %}">Главная</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Карточка товара со всей информацией -->
+    <div class="card shadow-sm bg-white mb-4">
+        <div class="card-body">
+            <div class="row">
+                <!-- Изображение товара -->
+                <div class="col-md-5 mb-3 mb-md-0">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" class="img-fluid rounded border" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center bg-light rounded border"
+                             style="height: 260px;">
+                            <span class="text-muted">Изображение отсутствует</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Основная информация о товаре -->
+                <div class="col-md-7">
+                    <h2 class="mb-3">{{ product.name }}</h2>
+
+                    <p class="mb-2">
+                        <span class="fw-bold">Категория:</span> {{ product.category.name }}
+                    </p>
+                    <p class="mb-2">
+                        <span class="fw-bold">Цена:</span>
+                        <span class="fs-4 text-danger">{{ product.price }} руб.</span>
+                    </p>
+                    <p class="mb-2">
+                        <span class="fw-bold">Дата создания:</span> {{ product.created_at|date:"d.m.Y H:i" }}
+                    </p>
+                    <p class="mb-4">
+                        <span class="fw-bold">Дата последнего изменения:</span> {{ product.updated_at|date:"d.m.Y H:i" }}
+                    </p>
+
+                    <h5 class="mb-2">Описание</h5>
+                    <p class="mb-0">{{ product.description|default:"Описание отсутствует"|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'catalog:home' %}" class="btn btn-secondary">&larr; Вернуться в каталог</a>
+        <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-primary">Редактировать</a>
+        <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-outline-danger">Удалить</a>
+    </div>
+</div>
+{% endblock %}

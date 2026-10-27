@@ -8,7 +8,10 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "django (>=6.1,<7.0)",
-    "psycopg2-binary (>=2.9.12,<3.0.0)"
+    "psycopg2-binary (>=2.9.12,<3.0.0)",
+    "pillow (>=12.3.0,<13.0.0)",
+    "psycopg (>=3.3.6,<4.0.0)",
+    "python-dotenv (>=1.2.3,<2.0.0)",
 ]
 
 
@@ -32,3 +35,6 @@ lint-mypy    = "mypy ."
 
 # Объединяем все четыре проверки в одну команду "all"
 all = ["format-black", "format-isort", "lint-flake8", "lint-mypy"]
+
+[tool.isort]
+profile = "black"
