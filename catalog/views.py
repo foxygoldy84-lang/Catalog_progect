@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -39,7 +40,7 @@ class HomeView(ListView):
         return paginator, page, page.object_list, page.has_other_pages()
 
 
-class ProductDetailView(DetailView):
+class ProductDetailView(LoginRequiredMixin, DetailView):
     """Контроллер страницы с подробной информацией о товаре."""
 
     model = Product
@@ -78,7 +79,7 @@ class ProductFormContextMixin:
         return context
 
 
-class ProductCreateView(ProductFormContextMixin, CreateView):
+class ProductCreateView(LoginRequiredMixin, ProductFormContextMixin, CreateView):
     """Контроллер страницы добавления нового товара в каталог."""
 
     model = Product
@@ -95,7 +96,7 @@ class ProductCreateView(ProductFormContextMixin, CreateView):
         return response
 
 
-class ProductUpdateView(ProductFormContextMixin, UpdateView):
+class ProductUpdateView(LoginRequiredMixin, ProductFormContextMixin, UpdateView):
     """Контроллер страницы редактирования товара."""
 
     model = Product
@@ -114,7 +115,7 @@ class ProductUpdateView(ProductFormContextMixin, UpdateView):
         return response
 
 
-class ProductDeleteView(DeleteView):
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
     """Контроллер страницы удаления товара."""
 
     model = Product

@@ -3,5 +3,18 @@
     <a href="{% url 'catalog:home' %}" style="color: white; margin: 0 15px; text-decoration: none;">Главная</a>
     <a href="{% url 'catalog:contacts' %}" style="color: white; margin: 0 15px; text-decoration: none;">Контакты</a>
     <a href="{% url 'blog:blogpost_list' %}" style="color: white; margin: 0 15px; text-decoration: none;">Блог</a>
-    <a href="{% url 'catalog:create_product' %}" style="color: lightgreen; margin: 0 15px; text-decoration: none; font-weight: bold;">+ Добавить товар</a>
+
+    {% if user.is_authenticated %}
+        <a href="{% url 'catalog:create_product' %}" style="color: lightgreen; margin: 0 15px; text-decoration: none; font-weight: bold;">+ Добавить товар</a>
+        <span style="color: #ccc; margin: 0 15px;">{{ user.email }}</span>
+        <form method="post" action="{% url 'users:logout' %}" style="display: inline; margin: 0;">
+            {% csrf_token %}
+            <button type="submit" style="background: none; border: none; color: #ffb3b3; margin: 0 15px; padding: 0; cursor: pointer; font: inherit; text-decoration: underline;">
+                Выйти
+            </button>
+        </form>
+    {% else %}
+        <a href="{% url 'users:login' %}" style="color: lightgreen; margin: 0 15px; text-decoration: none; font-weight: bold;">Войти</a>
+        <a href="{% url 'users:register' %}" style="color: white; margin: 0 15px; text-decoration: none;">Регистрация</a>
+    {% endif %}
 </nav>

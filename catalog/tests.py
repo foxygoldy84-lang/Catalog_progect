@@ -1,5 +1,6 @@
 from io import BytesIO
 
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -10,11 +11,28 @@ from catalog.forms import MAX_IMAGE_SIZE, ProductForm
 from catalog.models import Category, Product
 
 
-class CatalogViewTests(TestCase):
+class AuthenticatedUserMixin:
+    """Создаёт пользователя и авторизует его для защищённых страниц."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.user = get_user_model().objects.create_user(
+            email="tester@example.com",
+            password="Test-password-123",
+        )
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+
+
+class CatalogViewTests(AuthenticatedUserMixin, TestCase):
     """Проверки контроллеров и шаблонов каталога."""
 
     @classmethod
     def setUpTestData(cls):
+        super().setUpTestData()
         cls.category = Category.objects.create(
             name="Электроника",
             description="Бытовая техника и гаджеты",
@@ -110,11 +128,12 @@ class PaginationTests(TestCase):
         self.assertContains(response, "Вперёд")
 
 
-class CreateProductTests(TestCase):
+class CreateProductTests(AuthenticatedUserMixin, TestCase):
     """Проверки страницы добавления нового товара."""
 
     @classmethod
     def setUpTestData(cls):
+        super().setUpTestData()
         cls.category = Category.objects.create(name="Электроника")
 
     def test_create_page_is_rendered(self):
@@ -295,11 +314,12 @@ class ProductFormValidationTests(TestCase):
         )
 
 
-class ProductCrudTests(TestCase):
+class ProductCrudTests(AuthenticatedUserMixin, TestCase):
     """Проверки редактирования и удаления продуктов."""
 
     @classmethod
     def setUpTestData(cls):
+        super().setUpTestData()
         cls.category = Category.objects.create(name="Электроника")
         cls.product = Product.objects.create(
             name="Смартфон",

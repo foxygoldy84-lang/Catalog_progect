@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "catalog",
     "blog",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -95,6 +96,15 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+
+# Кастомная модель пользователя с авторизацией по электронной почте
+AUTH_USER_MODEL = "users.User"
+
+# Куда перенаправлять анонимных пользователей и после входа/выхода
+LOGIN_URL = "users:login"
+LOGIN_REDIRECT_URL = "catalog:home"
+LOGOUT_REDIRECT_URL = "catalog:home"
 
 
 LANGUAGE_CODE = "ru-ru"
