@@ -1,0 +1,32 @@
+{% extends "catalog/base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'blog:blogpost_list' %}">Блог</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ post.title }}</li>
+            </ol>
+        </nav>
+
+        <article class="card shadow-sm bg-white mb-4">
+            {% if post.preview %}
+                <img src="{{ post.preview.url }}" class="card-img-top" alt="{{ post.title }}">
+            {% endif %}
+            <div class="card-body">
+                <h1 class="mb-3">{{ post.title }}</h1>
+                <div class="d-flex justify-content-between text-muted mb-4">
+                    <span>Опубликовано: {{ post.created_at|date:"d.m.Y H:i" }}</span>
+                    <span>Просмотров: {{ post.views_count }}</span>
+                </div>
+                <div class="fs-5">{{ post.content|linebreaks }}</div>
+            </div>
+        </article>
+
+        <div class="d-flex gap-2">
+            <a href="{% url 'blog:blogpost_list' %}" class="btn btn-secondary">&larr; К списку статей</a>
+            <a href="{% url 'blog:blogpost_update' post.pk %}" class="btn btn-primary">Редактировать</a>
+            <a href="{% url 'blog:blogpost_delete' post.pk %}" class="btn btn-outline-danger">Удалить</a>
+        </div>
+    </div>
+{% endblock %}

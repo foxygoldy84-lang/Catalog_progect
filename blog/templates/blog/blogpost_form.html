@@ -1,0 +1,37 @@
+{% extends "catalog/base.html" %}
+{% block title %}{% if object %}Редактировать статью{% else %}Новая статья{% endif %}{% endblock %}
+{% block content %}
+    <div class="container" style="max-width: 720px;">
+        <h2 class="mb-4">
+            {% if object %}Редактировать статью{% else %}Добавить новую статью{% endif %}
+        </h2>
+
+        <!-- enctype нужен для загрузки изображения-превью -->
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="card shadow-sm bg-white p-4">
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary w-100">Сохранить статью</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

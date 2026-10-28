@@ -35,3 +35,6 @@ lint-mypy    = "mypy ."
 
 # Объединяем все четыре проверки в одну команду "all"
 all = ["format-black", "format-isort", "lint-flake8", "lint-mypy"]
+
+[tool.isort]
+profile = "black"
